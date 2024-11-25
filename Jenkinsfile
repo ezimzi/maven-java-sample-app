@@ -1,30 +1,37 @@
 pipeline {
     agent any
     tools {
-        jdk 'JAVA'  
+        jdk 'jdk'   // Use your JDK configuration name
+        maven 'maven' // Use your Maven configuration name
     }
     stages {
         stage('git checkout') {
             steps {
-                git branch: 'master', url: 'https://github.com/MisbaHashimT/maven-java-sample-app.git'
+                git branch: 'master', url: 'https://github.com/ezimzi/maven-java-sample-app.git'
             }
         }
         stage('compile') {
             steps {
-                bat 'mvn spring-javaformat:apply'
-                bat 'mvn clean compile'
+                script {
+                    def mvnHome = tool name: 'maven', type: 'maven'
+                    bat "${mvnHome}/bin/mvn spring-javaformat:apply"
+                    bat "${mvnHome}/bin/mvn clean compile"
+                }
             }
         }
-        stage('built') {
+        stage('build') {
             steps {
-                bat 'mvn package'
+                script {
+                    def mvnHome = tool name: 'maven', type: 'maven'
+                    bat "${mvnHome}/bin/mvn package"
+                }
             }
         }
         stage('push docker image') {
             steps {
-               script {
+                script {
                     // Docker image details
-                    def dockerImage = 'misbahashim/maven-java-sample-app'
+                    def dockerImage = 'imtiyaz18/maven-java-sample-app'
                     def dockerTag = 'latest'
 
                     // Docker login
@@ -37,14 +44,14 @@ pipeline {
 
                     // Push the Docker image to Docker Hub
                     bat "docker push ${dockerImage}:${dockerTag}"
-                } 
+                }
             }
         }
         stage('deploy application') {
             steps {
                 script {
                     // Pull and run the Docker container
-                    def dockerImage = 'misbahashim/maven-java-sample-app'
+                    def dockerImage = 'imtiyaz18/maven-java-sample-app'
                     def dockerTag = 'latest'
                     bat "docker pull ${dockerImage}:${dockerTag}"
                     bat "docker run -d -p 8001:8001 --name maven-app ${dockerImage}:${dockerTag}"

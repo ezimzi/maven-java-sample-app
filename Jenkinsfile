@@ -1,8 +1,7 @@
 pipeline {
     agent any
     tools {
-        jdk 'jdk'   // Use your JDK configuration name
-        maven 'maven' // Use your Maven configuration name
+        jdk 'jdk'  
     }
     stages {
         stage('git checkout') {
@@ -12,24 +11,18 @@ pipeline {
         }
         stage('compile') {
             steps {
-                script {
-                    def mvnHome = tool name: 'maven', type: 'maven'
-                    bat "${mvnHome}/bin/mvn spring-javaformat:apply"
-                    bat "${mvnHome}/bin/mvn clean compile"
-                }
+                bat 'maven spring-javaformat:apply'
+                bat 'maven clean compile'
             }
         }
-        stage('build') {
+        stage('built') {
             steps {
-                script {
-                    def mvnHome = tool name: 'maven', type: 'maven'
-                    bat "${mvnHome}/bin/mvn package"
-                }
+                bat 'maven package'
             }
         }
         stage('push docker image') {
             steps {
-                script {
+               script {
                     // Docker image details
                     def dockerImage = 'imtiyaz18/maven-java-sample-app'
                     def dockerTag = 'latest'
@@ -44,7 +37,7 @@ pipeline {
 
                     // Push the Docker image to Docker Hub
                     bat "docker push ${dockerImage}:${dockerTag}"
-                }
+                } 
             }
         }
         stage('deploy application') {
